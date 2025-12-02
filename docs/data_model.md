@@ -195,7 +195,7 @@ Armazena a inteligência e o diagnóstico da IA sobre a execução, incluindo a 
 | updatedAt | Timestamp | Última modificação. | Sim | time.now |
 | createdAt | Timestamp | Data de criação. | Sim | time.now |
 | createdBy | String (FK) | Criado por quem. | Sim | AutoAI |
-| lastUpdateBy | String (FK) | Modificado por quem | Não | AutoAI |
+| lastUpdatedBy | String (FK) | Modificado por quem | Não | AutoAI |
 
 ### CUSTOM_SNIPPETS
 
