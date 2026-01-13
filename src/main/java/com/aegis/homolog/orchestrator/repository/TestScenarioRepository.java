@@ -4,7 +4,7 @@ import com.aegis.homolog.orchestrator.model.entity.TestScenario;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface TestScenarioRepository extends JpaRepository<TestScenario, String> {
+public interface TestScenarioRepository extends JpaRepository<TestScenario, Long> {
 
-    List<TestScenario> findByProjectProjectIdAndTagIdsContaining(String projectId, String tagId);
+    List<TestScenario> findByProjectIdAndTagIdsContaining(Long projectId, Long tagId);
 }

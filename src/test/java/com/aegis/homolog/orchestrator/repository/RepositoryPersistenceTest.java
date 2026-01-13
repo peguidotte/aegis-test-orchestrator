@@ -38,7 +38,7 @@ class RepositoryPersistenceTest {
     @Test
     @DisplayName("Should store and query projects by scope")
     void shouldStoreAndQueryProjectsByScope() {
-        var project = TestEntityFactory.testProject("proj-main", "internal_systems");
+        var project = TestEntityFactory.testProject(1L, "internal_systems");
         testProjectRepository.save(project);
 
         var results = testProjectRepository.findByScope("internal_systems");
@@ -46,14 +46,14 @@ class RepositoryPersistenceTest {
         assertThat(results)
                 .hasSize(1)
                 .first()
-                .matches(saved -> saved.getProjectId().equals("proj-main")
+                .matches(saved -> saved.getProjectId().equals(1L)
                         && saved.getDescription().contains("Regression"));
     }
 
     @Test
     @DisplayName("Should fetch domains by name fragment")
     void shouldFetchDomainsByNameFragment() {
-        var domain = TestEntityFactory.domain("domain-users", "Users");
+        var domain = TestEntityFactory.domain("Users");
         domainRepository.save(domain);
 
         var results = domainRepository.findByNameContainingIgnoreCase("user");
@@ -69,8 +69,8 @@ class RepositoryPersistenceTest {
     @Test
     @DisplayName("Should filter tags by level")
     void shouldFilterTagsByLevel() {
-        var regression = TestEntityFactory.tag("tag-reg", "scenario");
-        var smoke = TestEntityFactory.tag("tag-smoke", "feature");
+        var regression = TestEntityFactory.tag("Regression", "scenario");
+        var smoke = TestEntityFactory.tag("Smoke", "feature");
         tagRepository.saveAll(List.of(regression, smoke));
 
         var scenarioTags = tagRepository.findByLevel("scenario");
@@ -85,13 +85,13 @@ class RepositoryPersistenceTest {
     @Test
     @DisplayName("Should join api calls by project and domain")
     void shouldJoinApiCallsByProjectAndDomain() {
-        var project = testProjectRepository.save(TestEntityFactory.testProject("proj-api", "client_homologation"));
-        var domain = domainRepository.save(TestEntityFactory.domain("domain-payments", "Payments"));
+        var project = testProjectRepository.save(TestEntityFactory.testProject(2L, "client_homologation"));
+        var domain = domainRepository.save(TestEntityFactory.domain("Payments"));
 
-        var apiCall = TestEntityFactory.apiCall("call-create", project, domain);
+        var apiCall = TestEntityFactory.apiCall(project, domain);
         apiCallRepository.save(apiCall);
 
-        var results = apiCallRepository.findByProjectProjectIdAndDomainDomainId("proj-api", "domain-payments");
+        var results = apiCallRepository.findByProjectIdAndDomainId(project.getId(), domain.getId());
 
         assertThat(results)
                 .hasSize(1)
@@ -103,11 +103,13 @@ class RepositoryPersistenceTest {
     @Test
     @DisplayName("Should locate scenarios by tag and project")
     void shouldLocateScenariosByTagAndProject() {
-        var project = testProjectRepository.save(TestEntityFactory.testProject("proj-scen", "internal_systems"));
-        var scenario = TestEntityFactory.testScenario("scenario-create", project, List.of("tag-reg", "tag-bvt"));
+        var project = testProjectRepository.save(TestEntityFactory.testProject(3L, "internal_systems"));
+        var tag = tagRepository.save(TestEntityFactory.tag("Regression", "scenario"));
+
+        var scenario = TestEntityFactory.testScenario(project, List.of(tag.getId()));
         testScenarioRepository.save(scenario);
 
-        var results = testScenarioRepository.findByProjectProjectIdAndTagIdsContaining("proj-scen", "tag-reg");
+        var results = testScenarioRepository.findByProjectIdAndTagIdsContaining(project.getId(), tag.getId());
 
         assertThat(results)
             .hasSize(1)

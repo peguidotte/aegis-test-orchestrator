@@ -17,16 +17,16 @@ import lombok.experimental.SuperBuilder;
 @MappedSuperclass
 public abstract class AuditableEntity {
 
-    @Column(name = "CREATED_AT", nullable = false)
+    @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
-    @Column(name = "UPDATED_AT", nullable = false)
+    @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
-    @Column(name = "CREATED_BY", nullable = false, length = 64)
+    @Column(name = "created_by", nullable = false, length = 64)
     private String createdBy;
 
-    @Column(name = "LAST_UPDATED_BY", nullable = false, length = 64)
+    @Column(name = "last_updated_by", nullable = false, length = 64)
     private String lastUpdatedBy;
 
     @PrePersist

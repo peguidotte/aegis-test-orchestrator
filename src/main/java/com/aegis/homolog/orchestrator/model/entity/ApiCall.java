@@ -5,6 +5,8 @@ import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
@@ -27,42 +29,43 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @ToString(callSuper = true, exclude = {"project", "domain"})
 @Entity
-@Table(name = "T_AEGIS_API_CALLS")
+@Table(name = "t_aegis_api_calls")
 public class ApiCall extends AuditableEntity {
 
     @Id
-    @Column(name = "CALL_ID", nullable = false, length = 64)
-    private String callId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "PROJECT_ID", nullable = false)
+    @JoinColumn(name = "project_id", nullable = false)
     private TestProject project;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "DOMAIN_ID", nullable = false)
+    @JoinColumn(name = "domain_id", nullable = false)
     private Domain domain;
 
-    @Column(name = "BASE_URL_ID", nullable = false, length = 64)
+    @Column(name = "base_url_id", nullable = false, length = 64)
     private String baseUrlId;
 
-    @Column(name = "ROUTE_DEFINITION", nullable = false, length = 256)
+    @Column(name = "route_definition", nullable = false, length = 256)
     private String routeDefinition;
 
-    @Column(name = "HTTP_METHOD", nullable = false, length = 16)
+    @Column(name = "http_method", nullable = false, length = 16)
     private String method;
 
     @ElementCollection
-    @CollectionTable(name = "T_AEGIS_API_CALL_VARS", joinColumns = @JoinColumn(name = "CALL_ID"))
-    @Column(name = "VARIABLE_ID", length = 128)
+    @CollectionTable(name = "t_aegis_api_call_vars", joinColumns = @JoinColumn(name = "api_call_id"))
+    @Column(name = "variable_id", length = 128)
     @Builder.Default
     private Set<String> customVariables = new HashSet<>();
 
     @Lob
-    @Column(name = "BASE_GHERKIN", nullable = false)
+    @Column(name = "base_gherkin", nullable = false)
     private String baseGherkin;
 
     @Lob
-    @Column(name = "REQUIRED_PARAMS")
+    @Column(name = "required_params")
     private String requiredParams;
 
 }

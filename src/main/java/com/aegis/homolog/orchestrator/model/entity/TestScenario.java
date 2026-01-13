@@ -5,6 +5,8 @@ import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
@@ -29,56 +31,57 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @ToString(callSuper = true, exclude = "project")
 @Entity
-@Table(name = "T_AEGIS_TEST_SCENARIOS")
+@Table(name = "t_aegis_test_scenarios")
 public class TestScenario extends AuditableEntity {
 
     @Id
-    @Column(name = "SCENARIO_ID", nullable = false, length = 64)
-    private String scenarioId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
+    private Long id;
 
-    @Column(name = "FEATURE_ID", nullable = false, length = 64)
+    @Column(name = "feature_id", nullable = false, length = 64)
     private String featureId;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "PROJECT_ID", nullable = false)
+    @JoinColumn(name = "project_id", nullable = false)
     private TestProject project;
 
-    @Column(name = "TITLE", nullable = false, length = 256)
+    @Column(name = "title", nullable = false, length = 256)
     private String title;
 
     @ElementCollection
-    @CollectionTable(name = "T_AEGIS_SCENARIO_TAGS", joinColumns = @JoinColumn(name = "SCENARIO_ID"))
-    @Column(name = "TAG_ID", length = 64)
+    @CollectionTable(name = "t_aegis_scenario_tags", joinColumns = @JoinColumn(name = "scenario_id"))
+    @Column(name = "tag_id")
     @Builder.Default
-    private List<String> tagIds = new ArrayList<>();
+    private List<Long> tagIds = new ArrayList<>();
 
     @ElementCollection
-    @CollectionTable(name = "T_AEGIS_SCENARIO_VARS", joinColumns = @JoinColumn(name = "SCENARIO_ID"))
-    @Column(name = "VARIABLE_ID", length = 64)
+    @CollectionTable(name = "t_aegis_scenario_vars", joinColumns = @JoinColumn(name = "scenario_id"))
+    @Column(name = "variable_id", length = 64)
     @Builder.Default
     private List<String> customVariableIds = new ArrayList<>();
 
     @ElementCollection
-    @CollectionTable(name = "T_AEGIS_SCENARIO_CALLS", joinColumns = @JoinColumn(name = "SCENARIO_ID"))
-    @Column(name = "CALL_ID", length = 64)
+    @CollectionTable(name = "t_aegis_scenario_calls", joinColumns = @JoinColumn(name = "scenario_id"))
+    @Column(name = "api_call_id")
     @Builder.Default
-    private List<String> usedApiCallIds = new ArrayList<>();
+    private List<Long> usedApiCallIds = new ArrayList<>();
 
     @Lob
-    @Column(name = "ABSTRACT_MODEL", nullable = false)
+    @Column(name = "abstract_model", nullable = false)
     private String abstractModel;
 
     @Lob
-    @Column(name = "GENERATED_GHERKIN", nullable = false)
+    @Column(name = "generated_gherkin", nullable = false)
     private String generatedGherkin;
 
-    @Column(name = "TOTAL_EXECUTIONS", nullable = false)
+    @Column(name = "total_executions", nullable = false)
     private Integer totalExecutions;
 
-    @Column(name = "TOTAL_FAILURES", nullable = false)
+    @Column(name = "total_failures", nullable = false)
     private Integer totalFailures;
 
-    @Column(name = "FAILURE_RATE", nullable = false, precision = 6, scale = 3)
+    @Column(name = "failure_rate", nullable = false, precision = 6, scale = 3)
     private BigDecimal failureRate;
 
     @PrePersist

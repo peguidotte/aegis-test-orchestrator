@@ -2,6 +2,8 @@ package com.aegis.homolog.orchestrator.model.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -18,19 +20,20 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @ToString(callSuper = true)
 @Entity
-@Table(name = "T_AEGIS_TAGS")
+@Table(name = "t_aegis_tags")
 public class Tag extends AuditableEntity {
 
     @Id
-    @Column(name = "TAG_ID", nullable = false, length = 64)
-    private String tagId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
+    private Long id;
 
-    @Column(name = "NAME", nullable = false, length = 128)
+    @Column(name = "name", nullable = false, length = 128)
     private String name;
 
-    @Column(name = "DESCRIPTION", length = 512)
+    @Column(name = "description", length = 512)
     private String description;
 
-    @Column(name = "LEVEL", nullable = false, length = 32)
+    @Column(name = "level", nullable = false, length = 32)
     private String level;
 }
