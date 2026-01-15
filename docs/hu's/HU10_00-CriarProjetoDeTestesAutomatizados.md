@@ -66,7 +66,7 @@ As regras de negócio (RNs) geralmente resultam em `401 Unauthorized`, `403 Forb
 | **Código** | **Campo(s) envolvido(s)** | **Regra de Negócio** | **Racional** | **errorCode** |
 | --- | --- | --- | --- | --- |
 | RN10.01.1 | `projectId` | O Projeto Core deve existir e o usuário deve ser ADMIN/OWNER. | Governança de acesso. | `PROJECT_NOT_FOUND` |
-| RN10.01.2 | `limit` | Cada Projeto Core só pode ter 1 TestProject (MVP, isso será alterado depois com base em planos). | Política de plano e billing. | `TEST_PROJECT_LIMIT_REACH` |
+| RN10.01.2 | `limit` | Cada Projeto Core só pode ter 1 TestProject (MVP, isso será alterado depois com base em planos). | Política de plano e billing. | `TEST_PROJECT_LIMIT_REACHED` |
 | RN10.01.3 | `name` | Não deve existir dentro de um PROJECT dois TESTPROJECTS com mesmo nome | Respeitar responsabilidade e boas práticas. | `TEST_PROJECT_NAME_ALREADY_EXISTS` |
 
 ## Respostas HTTP
