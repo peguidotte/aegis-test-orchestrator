@@ -186,24 +186,24 @@ public record CreateTestProjectRequestDTO(
 ) {}
 ```
 
-### 5.3 Null Safety in Response DTOs
+### 5.3 Null Safety
 
-For required fields in response DTOs, use:
-- `@NonNull` annotation for IDE warnings
-- `Objects.requireNonNull()` in compact constructor for runtime validation
+**Request DTOs**: Use Bean Validation (`@NotBlank`, `@NotNull`) - validated at runtime by Spring.
+
+**Response DTOs**: Use `@NonNull` annotation only - IDE will show warnings at compile-time.
 
 ```java
+// Response DTO - IDE warns if you pass null
 public record ErrorResponseDTO(
-    @NonNull String errorCode,
-    @NonNull String message,
-    @Nullable String field
+    @NonNull String errorCode,  // IDE warning if null passed
+    @NonNull String message,    // IDE warning if null passed  
+    @Nullable String field      // OK to be null
 ) {
-    public ErrorResponseDTO {
-        Objects.requireNonNull(errorCode, "errorCode must not be null");
-        Objects.requireNonNull(message, "message must not be null");
-    }
+    // NO runtime validation needed - this is OUR code, not user input
 }
 ```
+
+**Rationale**: Response DTOs are constructed by our code, not external input. If we pass null, it's a programming error that should be caught during development via IDE warnings, not at runtime.
 
 ---
 
