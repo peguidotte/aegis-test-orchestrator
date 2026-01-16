@@ -113,7 +113,7 @@ class TestProjectServiceTest {
             testProjectService.create(PROJECT_ID, validRequest, USER_ID);
 
             // Assert
-            verify(environmentService).createDefault(eq(savedProject), eq(USER_ID));
+            verify(environmentService).createDefault(savedProject, USER_ID);
         }
 
         @Test
