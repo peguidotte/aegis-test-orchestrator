@@ -4,9 +4,7 @@ import com.aegis.homolog.orchestrator.exception.TestProjectLimitReachedException
 import com.aegis.homolog.orchestrator.exception.TestProjectNameAlreadyExistsException;
 import com.aegis.homolog.orchestrator.model.dto.CreateTestProjectRequestDTO;
 import com.aegis.homolog.orchestrator.model.dto.TestProjectResponseDTO;
-import com.aegis.homolog.orchestrator.model.entity.Environment;
 import com.aegis.homolog.orchestrator.model.entity.TestProject;
-import com.aegis.homolog.orchestrator.repository.EnvironmentRepository;
 import com.aegis.homolog.orchestrator.repository.TestProjectRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,48 +12,43 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class TestProjectService {
 
-    private static final int MAX_TEST_PROJECTS_PER_PROJECT = 1; // MVP limit
+    private static final int MAX_TEST_PROJECTS_PER_PROJECT = 2; // MVP limit
 
     private final TestProjectRepository testProjectRepository;
-    private final EnvironmentRepository environmentRepository;
+    private final EnvironmentService environmentService;
 
     public TestProjectService(TestProjectRepository testProjectRepository,
-                              EnvironmentRepository environmentRepository) {
+                              EnvironmentService environmentService) {
         this.testProjectRepository = testProjectRepository;
-        this.environmentRepository = environmentRepository;
+        this.environmentService = environmentService;
     }
 
     /**
-     * Cria um novo TestProject para o projeto especificado.
+     * Creates a new TestProject for the specified project.
      *
-     * @param projectId ID do Projeto Core
-     * @param request DTO com dados do TestProject
-     * @param userId ID do usuário que está criando
-     * @return DTO com os dados do TestProject criado
-     * @throws TestProjectLimitReachedException se o limite de TestProjects for atingido (RN10.01.2)
-     * @throws TestProjectNameAlreadyExistsException se já existir um TestProject com o mesmo nome (RN10.01.3)
+     * @param projectId Core Project ID
+     * @param request DTO with TestProject data
+     * @param userId ID of the user creating the resource
+     * @return DTO with created TestProject data
+     * @throws TestProjectLimitReachedException if TestProject limit is reached
+     * @throws TestProjectNameAlreadyExistsException if a TestProject with same name exists
      */
     @Transactional
     public TestProjectResponseDTO create(Long projectId, CreateTestProjectRequestDTO request, String userId) {
-        // RN10.01.2: Validar limite de TestProjects por projeto
         validateTestProjectLimit(projectId);
-
-        // RN10.01.3: Validar unicidade do nome dentro do projeto
         validateNameUniqueness(projectId, request.name());
 
-        // Criar e persistir o TestProject
         TestProject testProject = buildTestProject(projectId, request, userId);
         TestProject savedProject = testProjectRepository.save(testProject);
 
-        // Criar Environment "Default" automaticamente
-        createDefaultEnvironment(savedProject, userId);
+        environmentService.createDefault(savedProject, userId);
 
         return TestProjectResponseDTO.fromEntity(savedProject);
     }
 
     private void validateTestProjectLimit(Long projectId) {
-        var existingProjects = testProjectRepository.findByProjectId(projectId);
-        if (!existingProjects.isEmpty()) {
+        long count = testProjectRepository.countByProjectId(projectId);
+        if (count >= MAX_TEST_PROJECTS_PER_PROJECT) {
             throw new TestProjectLimitReachedException(projectId);
         }
     }
@@ -75,19 +68,6 @@ public class TestProjectService {
                 .createdBy(userId)
                 .lastUpdatedBy(userId)
                 .build();
-    }
-
-    private void createDefaultEnvironment(TestProject testProject, String userId) {
-        Environment defaultEnvironment = Environment.builder()
-                .testProject(testProject)
-                .name("Default")
-                .description("Default environment created automatically")
-                .isDefault(true)
-                .createdBy(userId)
-                .lastUpdatedBy(userId)
-                .build();
-
-        environmentRepository.save(defaultEnvironment);
     }
 }
 

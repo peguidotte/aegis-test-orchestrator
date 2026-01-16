@@ -6,8 +6,8 @@ import com.aegis.homolog.orchestrator.model.dto.CreateTestProjectRequestDTO;
 import com.aegis.homolog.orchestrator.model.dto.TestProjectResponseDTO;
 import com.aegis.homolog.orchestrator.model.entity.Environment;
 import com.aegis.homolog.orchestrator.model.entity.TestProject;
-import com.aegis.homolog.orchestrator.repository.EnvironmentRepository;
 import com.aegis.homolog.orchestrator.repository.TestProjectRepository;
+import com.aegis.homolog.orchestrator.services.EnvironmentService;
 import com.aegis.homolog.orchestrator.services.TestProjectService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -21,13 +21,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
-import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -38,7 +37,7 @@ class TestProjectServiceTest {
     private TestProjectRepository testProjectRepository;
 
     @Mock
-    private EnvironmentRepository environmentRepository;
+    private EnvironmentService environmentService;
 
     @InjectMocks
     private TestProjectService testProjectService;
@@ -46,8 +45,6 @@ class TestProjectServiceTest {
     @Captor
     private ArgumentCaptor<TestProject> testProjectCaptor;
 
-    @Captor
-    private ArgumentCaptor<Environment> environmentCaptor;
 
     private static final Long PROJECT_ID = 10L;
     private static final String USER_ID = "user-123";
@@ -61,8 +58,8 @@ class TestProjectServiceTest {
         @BeforeEach
         void setUp() {
             validRequest = new CreateTestProjectRequestDTO(
-                    "Suíte de Testes - Recebíveis",
-                    "Testes de integração da API de Duplicatas"
+                    "Receivables Test Suite",
+                    "Integration tests for Invoices API"
             );
         }
 
@@ -70,15 +67,15 @@ class TestProjectServiceTest {
         @DisplayName("should create TestProject successfully when no existing projects")
         void shouldCreateTestProjectSuccessfully() {
             // Arrange
-            when(testProjectRepository.findByProjectId(PROJECT_ID)).thenReturn(Collections.emptyList());
+            when(testProjectRepository.countByProjectId(PROJECT_ID)).thenReturn(0L);
             when(testProjectRepository.findByProjectIdAndName(PROJECT_ID, validRequest.name()))
                     .thenReturn(Optional.empty());
 
             TestProject savedProject = createTestProject(500L, validRequest.name(), validRequest.description());
             when(testProjectRepository.save(any(TestProject.class))).thenReturn(savedProject);
 
-            Environment savedEnvironment = createDefaultEnvironment(1L, savedProject);
-            when(environmentRepository.save(any(Environment.class))).thenReturn(savedEnvironment);
+            Environment savedEnvironment = createDefaultEnvironment(savedProject);
+            when(environmentService.createDefault(any(TestProject.class), eq(USER_ID))).thenReturn(savedEnvironment);
 
             // Act
             TestProjectResponseDTO response = testProjectService.create(PROJECT_ID, validRequest, USER_ID);
@@ -102,32 +99,28 @@ class TestProjectServiceTest {
         @DisplayName("should create default Environment automatically when TestProject is created")
         void shouldCreateDefaultEnvironmentAutomatically() {
             // Arrange
-            when(testProjectRepository.findByProjectId(PROJECT_ID)).thenReturn(Collections.emptyList());
+            when(testProjectRepository.countByProjectId(PROJECT_ID)).thenReturn(0L);
             when(testProjectRepository.findByProjectIdAndName(PROJECT_ID, validRequest.name()))
                     .thenReturn(Optional.empty());
 
             TestProject savedProject = createTestProject(500L, validRequest.name(), validRequest.description());
             when(testProjectRepository.save(any(TestProject.class))).thenReturn(savedProject);
-            when(environmentRepository.save(any(Environment.class))).thenAnswer(inv -> inv.getArgument(0));
+
+            Environment savedEnvironment = createDefaultEnvironment(savedProject);
+            when(environmentService.createDefault(any(TestProject.class), eq(USER_ID))).thenReturn(savedEnvironment);
 
             // Act
             testProjectService.create(PROJECT_ID, validRequest, USER_ID);
 
             // Assert
-            verify(environmentRepository).save(environmentCaptor.capture());
-            Environment capturedEnv = environmentCaptor.getValue();
-            assertThat(capturedEnv.getName()).isEqualTo("Default");
-            assertThat(capturedEnv.getIsDefault()).isTrue();
-            assertThat(capturedEnv.getTestProject()).isEqualTo(savedProject);
-            assertThat(capturedEnv.getCreatedBy()).isEqualTo(USER_ID);
+            verify(environmentService).createDefault(savedProject, USER_ID);
         }
 
         @Test
-        @DisplayName("should throw TestProjectLimitReachedException when project already has a TestProject (RN10.01.2)")
+        @DisplayName("should throw TestProjectLimitReachedException when project already has max TestProjects (RN10.01.2)")
         void shouldThrowExceptionWhenLimitReached() {
             // Arrange
-            TestProject existingProject = createTestProject(1L, "Existing Project", null);
-            when(testProjectRepository.findByProjectId(PROJECT_ID)).thenReturn(List.of(existingProject));
+            when(testProjectRepository.countByProjectId(PROJECT_ID)).thenReturn(2L);
 
             // Act & Assert
             assertThatThrownBy(() -> testProjectService.create(PROJECT_ID, validRequest, USER_ID))
@@ -135,14 +128,14 @@ class TestProjectServiceTest {
                     .hasMessageContaining(PROJECT_ID.toString());
 
             verify(testProjectRepository, never()).save(any());
-            verify(environmentRepository, never()).save(any());
+            verify(environmentService, never()).createDefault(any(), any());
         }
 
         @Test
         @DisplayName("should throw TestProjectNameAlreadyExistsException when name already exists (RN10.01.3)")
         void shouldThrowExceptionWhenNameAlreadyExists() {
             // Arrange
-            when(testProjectRepository.findByProjectId(PROJECT_ID)).thenReturn(Collections.emptyList());
+            when(testProjectRepository.countByProjectId(PROJECT_ID)).thenReturn(0L);
 
             TestProject existingWithSameName = createTestProject(1L, validRequest.name(), null);
             when(testProjectRepository.findByProjectIdAndName(PROJECT_ID, validRequest.name()))
@@ -155,7 +148,7 @@ class TestProjectServiceTest {
                     .hasMessageContaining(PROJECT_ID.toString());
 
             verify(testProjectRepository, never()).save(any());
-            verify(environmentRepository, never()).save(any());
+            verify(environmentService, never()).createDefault(any(), any());
         }
 
         @Test
@@ -167,13 +160,15 @@ class TestProjectServiceTest {
                     null
             );
 
-            when(testProjectRepository.findByProjectId(PROJECT_ID)).thenReturn(Collections.emptyList());
+            when(testProjectRepository.countByProjectId(PROJECT_ID)).thenReturn(0L);
             when(testProjectRepository.findByProjectIdAndName(PROJECT_ID, requestWithoutDescription.name()))
                     .thenReturn(Optional.empty());
 
             TestProject savedProject = createTestProject(500L, requestWithoutDescription.name(), null);
             when(testProjectRepository.save(any(TestProject.class))).thenReturn(savedProject);
-            when(environmentRepository.save(any(Environment.class))).thenAnswer(inv -> inv.getArgument(0));
+
+            Environment savedEnvironment = createDefaultEnvironment(savedProject);
+            when(environmentService.createDefault(any(TestProject.class), eq(USER_ID))).thenReturn(savedEnvironment);
 
             // Act
             TestProjectResponseDTO response = testProjectService.create(PROJECT_ID, requestWithoutDescription, USER_ID);
@@ -196,9 +191,9 @@ class TestProjectServiceTest {
                     .build();
         }
 
-        private Environment createDefaultEnvironment(Long id, TestProject testProject) {
+        private Environment createDefaultEnvironment(TestProject testProject) {
             return Environment.builder()
-                    .id(id)
+                    .id(1L)
                     .testProject(testProject)
                     .name("Default")
                     .description("Default environment created automatically")

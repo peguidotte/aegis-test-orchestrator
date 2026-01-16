@@ -20,18 +20,10 @@ public class OpenApiConfig {
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("Aegis Homolog Orchestrator API")
+                        .title("Aegis Test Orchestrator API")
                         .version("1.0.0")
                         .description("""
-                                API do módulo Aegis Tests para orquestração de testes automatizados.
-                                
-                                ## Funcionalidades
-                                - Gerenciamento de TestProjects
-                                - Gestão de Environments
-                                - Organização de especificações de teste
-                                
-                                ## MVP Features
-                                - Criação de TestProject (HU10_00)
+                                API module of Aegis Tests for orchestrating automated tests.
                                 """)
                         .contact(new Contact()
                                 .name("Aegis Team")

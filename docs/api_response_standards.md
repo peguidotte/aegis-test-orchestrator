@@ -1,20 +1,22 @@
-Este documento define as regras de resposta para todos os endpoints do **Aegis Orchestrator**, garantindo consistência, rastreabilidade e facilidade de consumo.
+# API Response Standards
+
+This document defines the response rules for all **Aegis Orchestrator** endpoints, ensuring consistency, traceability, and ease of consumption.
 
 ---
 
-## Padrões de Resposta de Sucesso (HTTP 2xx)
+## Success Response Patterns (HTTP 2xx)
 
-As respostas de sucesso devem ser diretas e refletir o recurso criado, modificado ou recuperado.
+Success responses should be direct and reflect the created, modified, or retrieved resource.
 
-### Sucesso na Criação, Mutação ou Busca (POST/PUT/PATCH/GET/DELETE)
+### Success on Creation, Mutation, or Fetch (POST/PUT/PATCH/GET/DELETE)
 
-| **Status Code** | **Uso Principal** | **Corpo da Resposta** |
+| **Status Code** | **Primary Use** | **Response Body** |
 | --- | --- | --- |
-| **201 Created** | Retorno de um `POST` bem-sucedido. | Deve retornar o objeto completo (DTO) do recurso recém-criado, incluindo seu ID. |
-| **200 OK** | Retorno de um `PUT/PATCH` (atualização), `GET` (detalhe) | Retorna o objeto completo atualizado (PUT) ou o objeto solicitado (GET). |
-| **204 No Content** | Retorno de um `DELETE` bem-sucedido. | O corpo da resposta deve ser **vazio**. |
+| **201 Created** | Return from a successful `POST`. | Must return the complete object (DTO) of the newly created resource, including its ID. |
+| **200 OK** | Return from `PUT/PATCH` (update), `GET` (detail) | Returns the complete updated object (PUT) or the requested object (GET). |
+| **204 No Content** | Return from a successful `DELETE`. | Response body must be **empty**. |
 
-**Estrutura do Detalhe/Criação (200/201):**
+**Detail/Creation Structure (200/201):**
 
 ```json
 {
@@ -22,19 +24,18 @@ As respostas de sucesso devem ser diretas e refletir o recurso criado, modificad
   "name": "string",
   "plan": "string",
   "globalIdentifier": "string"
-  // ... outros campos do DTO
 }
 ```
 
-### Coleções e Paginação (GET - Listagem)
+### Collections and Pagination (GET - Listing)
 
-Para endpoints que retornam listas (`GET /v1/org`), o retorno deve usar um objeto envelope para suportar paginação, ordenação e metadados.
+For endpoints that return lists (`GET /v1/org`), the return should use an envelope object to support pagination, sorting, and metadata.
 
-| **Status Code** | **Uso Principal** | **Corpo da Resposta** |
+| **Status Code** | **Primary Use** | **Response Body** |
 | --- | --- | --- |
-| **200 OK** | Listagem de recursos (Organizações, Cenários, etc.). | Deve retornar o objeto de paginação (Metadata + Items). |
+| **200 OK** | Resource listing (Organizations, Scenarios, etc.). | Must return the pagination object (Metadata + Items). |
 
-**Estrutura de Paginação Padrão:**
+**Standard Pagination Structure:**
 
 ```json
 {
@@ -46,7 +47,6 @@ Para endpoints que retornam listas (`GET /v1/org`), o retorno deve usar um objet
     "hasNextPage": true
   },
   "items": [
-    // Array com os objetos da Organização/Cenário
     { "id": 1, "name": "Cerc Central" },
     { "id": 2, "name": "Nestle Brasil" }
   ]
@@ -55,13 +55,13 @@ Para endpoints que retornam listas (`GET /v1/org`), o retorno deve usar um objet
 
 ---
 
-## Padrão de Respostas de Erro (HTTP 4xx)
+## Error Response Patterns (HTTP 4xx)
 
-Este padrão cobre todas as falhas de cliente, incluindo autenticação, autorização e validação.
+This pattern covers all client failures, including authentication, authorization, and validation.
 
-### Estrutura Padrão do JSON (Array de Erros)
+### Standard JSON Structure (Error Array)
 
-Para lidar com múltiplas violações de campo (`MISSING_REQUIRED_FIELD`, `INVALID_FORMAT`), a resposta deve ser um **Array JSON**, onde cada objeto representa um erro específico.
+To handle multiple field violations (`REQUIRED_FIELD`, `INVALID_FORMAT`), the response must be a **JSON Array**, where each object represents a specific error.
 
 ```json
 [
@@ -73,32 +73,116 @@ Para lidar com múltiplas violações de campo (`MISSING_REQUIRED_FIELD`, `INVAL
 ]
 ```
 
-| **Campo** | **Tipo** | **Descrição** |
+| **Field** | **Type** | **Description** |
 | --- | --- | --- |
-| `errorCode` | String | Código interno e padronizado do erro (Ex: `INVALID_HEX_FORMAT`). Usar `UPPER_SNAKE_CASE`. |
-| `message` | String | Mensagem amigável, em **Inglês**, que pode ser exibida diretamente ao usuário. |
-| `field` | String | O nome do campo do DTO que causou o erro. **Opcional**, mas recomendado para erros 400 e 409. |
+| `errorCode` | String | Internal standardized error code (Ex: `INVALID_FIELD_LENGTH`). Use `UPPER_SNAKE_CASE`. |
+| `message` | String | User-friendly message in **English** that can be displayed directly to the user. |
+| `field` | String | The DTO field name that caused the error. **Optional**, but recommended for 400 and 409 errors. |
 
-### Categorização de Status Code
+### Error Code Naming Convention
 
-| **Status Code** | **Categoria** | **Uso Principal** |
+Use **suffix-based naming** for error codes:
+
+```
+{ENTITY}_{ERROR_TYPE}
+```
+
+| **Suffix** | **Use Case** | **HTTP Status** |
+|------------|--------------|-----------------|
+| `*_LIMIT_REACHED` | Quantity limits | 422 |
+| `*_ALREADY_EXISTS` | Duplicates | 409 |
+| `*_NOT_FOUND` | Resource not found | 404 |
+| `*_INVALID` | Invalid value | 400 |
+
+**Examples:**
+
+| Error Code | Description |
+|------------|-------------|
+| `TEST_PROJECT_LIMIT_REACHED` | TestProject limit per project reached |
+| `TEST_PROJECT_NAME_ALREADY_EXISTS` | TestProject name already exists |
+| `ENVIRONMENT_LIMIT_REACHED` | Environment limit reached |
+| `ENVIRONMENT_NAME_ALREADY_EXISTS` | Environment name already exists |
+| `SCENARIO_NOT_FOUND` | Scenario not found |
+
+**Benefits:**
+- **Filter by entity**: `TEST_PROJECT_*`
+- **Filter by error type**: `*_LIMIT_REACHED`, `*_ALREADY_EXISTS`
+- **Granular metrics**: Know which entity/error occurs most
+
+### Validation Error Codes
+
+The `GlobalExceptionHandler` maps Bean Validation constraints to error codes:
+
+| **Constraint** | **Error Code** |
+|----------------|----------------|
+| `@NotBlank`, `@NotNull`, `@NotEmpty` | `REQUIRED_FIELD` |
+| `@Size`, `@Length` | `INVALID_FIELD_LENGTH` |
+| `@Email` | `INVALID_EMAIL_FORMAT` |
+| `@Pattern` | `INVALID_FORMAT` |
+| `@Min`, `@Max` | `INVALID_VALUE_RANGE` |
+| `@Positive`, `@Negative` | `INVALID_NUMBER` |
+| `@Past`, `@Future` | `INVALID_DATE` |
+| Others | `VALIDATION_ERROR` |
+
+### Status Code Categorization
+
+| **Status Code** | **Category** | **Primary Use** |
 | --- | --- | --- |
-| **400 Bad Request** | Erro de Validação de Campo | Quebra de Regras de Campo (RCs). Deve retornar **todos** os erros de campo violados no *array*. |
-| **401 Unauthorized** | Erro de Autenticação | Token JWT ausente ou inválido/malformado. |
-| **403 Forbidden** | Erro de Permissão/Governança | Usuário não tem o `role` necessário (Ex: não é `Admin`) ou está inativo. |
-| **409 Conflict** | Erro de Unicidade | Tentativa de criar um recurso que viola chaves únicas). |
-| 422 Unprocessable Entity | Erro de Regras de Negócio | Quebra de Regras de Negócio (RNs). |
+| **400 Bad Request** | Field Validation Error | Field Rule violations (RCs). Must return **all** violated field errors in the *array*. |
+| **401 Unauthorized** | Authentication Error | Missing or invalid/malformed JWT token. |
+| **403 Forbidden** | Permission/Governance Error | User doesn't have the required `role` (Ex: not `Admin`) or is inactive. |
+| **409 Conflict** | Uniqueness Error | Attempt to create a resource that violates unique keys. |
+| **422 Unprocessable Entity** | Business Rule Error | Business Rule violations (RNs). |
 
-### Erros de autorização (devem acontecer em todos os Endpoint protegidos):
+### Authorization Errors (must happen on all protected endpoints):
 
-| **Código** | **Campo(s) envolvido(s)** | **Regra de Negócio** | **Racional** | **errorCode** |
+| **Code** | **Field(s) involved** | **Business Rule** | **Rationale** | **errorCode** |
 | --- | --- | --- | --- | --- |
-| RNxx.1 | `[Header] authorization` | Tem que ser um Token JWT válido e não expirado. | Segurança fundamental. | `INVALID_AUTH_TOKEN` |
-| **RNxx.2** | `[Header] authorization` | O ID do usuário (extraído do token) deve ser um usuário ativo na plataforma de Auth. | Garante que o usuário criador esteja habilitado (não desativado no IAM). | `USER_ACCOUNT_INACTIVE` |
+| RNxx.1 | `[Header] authorization` | Must be a valid and non-expired JWT token. | Fundamental security. | `INVALID_AUTH_TOKEN` |
+| **RNxx.2** | `[Header] authorization` | The user ID (extracted from token) must be an active user on the Auth platform. | Ensures the creator user is enabled (not deactivated in IAM). | `USER_ACCOUNT_INACTIVE` |
+
+### Response Examples
+
+**Validation errors (400):**
+```json
+[
+  {
+    "errorCode": "REQUIRED_FIELD",
+    "message": "Name is required",
+    "field": "name"
+  },
+  {
+    "errorCode": "INVALID_FIELD_LENGTH",
+    "message": "Description must have at most 1000 characters",
+    "field": "description"
+  }
+]
+```
+
+**Business error (422):**
+```json
+[
+  {
+    "errorCode": "TEST_PROJECT_LIMIT_REACHED",
+    "message": "Project 10 has already reached the maximum limit of TestProjects"
+  }
+]
+```
+
+**Conflict error (409):**
+```json
+[
+  {
+    "errorCode": "TEST_PROJECT_NAME_ALREADY_EXISTS",
+    "message": "TestProject with name 'My Project' already exists in project 10",
+    "field": "name"
+  }
+]
+```
 
 ---
 
-## Padrões de Requisição (Headers e Consumo)
+## Request Patterns (Headers and Consumption)
 
 | **Padrão** | **Regra** | **Racional** |
 | --- | --- | --- |

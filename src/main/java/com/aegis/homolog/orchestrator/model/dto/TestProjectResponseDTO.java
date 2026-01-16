@@ -8,22 +8,22 @@ import java.time.Instant;
 @Schema(description = "Response payload representing a TestProject")
 public record TestProjectResponseDTO(
 
-        @Schema(description = "ID único do TestProject", example = "500")
+        @Schema(description = "TestProject unique identifier", example = "500")
         Long id,
 
-        @Schema(description = "Nome identificador do módulo de teste", example = "Suíte de Testes - Recebíveis")
+        @Schema(description = "Test module identifier name", example = "Receivables Test Suite")
         String name,
 
-        @Schema(description = "ID do Projeto Core associado", example = "10")
+        @Schema(description = "Associated Core Project ID", example = "10")
         Long projectId,
 
-        @Schema(description = "Descrição do escopo do módulo de teste", example = "Testes de integração da API de Duplicatas")
+        @Schema(description = "Test module scope description", example = "Integration tests for Invoices API")
         String description,
 
-        @Schema(description = "Data de criação do TestProject", example = "2026-01-12T14:00:00Z")
+        @Schema(description = "TestProject creation timestamp", example = "2026-01-12T14:00:00Z")
         Instant createdAt,
 
-        @Schema(description = "Usuário que criou o TestProject", example = "Pedro Guidotte")
+        @Schema(description = "User who created the TestProject", example = "john.doe")
         String createdBy
 ) {
 

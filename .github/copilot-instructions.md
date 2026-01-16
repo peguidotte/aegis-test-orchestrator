@@ -52,6 +52,13 @@ Exemplos de entidades:
 
 ## **Princípios de Desenvolvimento — Regras de Ouro**
 
+### **0. Language Standard**
+
+* **All code, comments, documentation, and commit messages MUST be written in English.**
+* Even if user instructions are provided in Portuguese, always generate outputs in English.
+
+---
+
 ### **1. Desenvolvimento Orientado a Contrato (TDD)**
 
 * Sempre começar pelo **teste unitário**.
@@ -92,6 +99,12 @@ Exemplos de entidades:
 
   * **Records (Java 21)**
   * DTOs imutáveis (`@Value`, construtores completos)
+
+#### **Dependency Injection**
+
+* **Always use Constructor Injection** instead of `@Autowired` on fields.
+* Benefits: testability, immutability (`final` fields), explicit dependencies.
+* Spring auto-detects single constructors since 4.3+.
 
 ---
 

@@ -2,35 +2,28 @@ package com.aegis.homolog.orchestrator.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 
 @Schema(description = "Standard error response object")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record ErrorResponseDTO(
 
-        @Schema(
-                description = "Código interno e padronizado do erro",
-                example = "INVALID_FIELD_LENGTH"
-        )
-        String errorCode,
+        @Schema(description = "Internal standardized error code", example = "INVALID_FIELD_LENGTH", requiredMode = Schema.RequiredMode.REQUIRED)
+        @NonNull String errorCode,
 
-        @Schema(
-                description = "Mensagem amigável que pode ser exibida ao usuário",
-                example = "Name must have at most 255 characters"
-        )
-        String message,
+        @Schema(description = "User-friendly error message", example = "Name must have at most 255 characters", requiredMode = Schema.RequiredMode.REQUIRED)
+        @NonNull String message,
 
-        @Schema(
-                description = "Nome do campo que causou o erro (quando aplicável)",
-                example = "name"
-        )
-        String field
+        @Schema(description = "Field name that caused the error (when applicable)", example = "name")
+        @Nullable String field
 ) {
 
-    public static ErrorResponseDTO of(String errorCode, String message) {
+    public static ErrorResponseDTO of(@NonNull String errorCode, @NonNull String message) {
         return new ErrorResponseDTO(errorCode, message, null);
     }
 
-    public static ErrorResponseDTO of(String errorCode, String message, String field) {
+    public static ErrorResponseDTO of(@NonNull String errorCode, @NonNull String message, @Nullable String field) {
         return new ErrorResponseDTO(errorCode, message, field);
     }
 }

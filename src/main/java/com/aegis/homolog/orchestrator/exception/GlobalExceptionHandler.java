@@ -1,7 +1,6 @@
 package com.aegis.homolog.orchestrator.exception;
 
 import com.aegis.homolog.orchestrator.model.dto.ErrorResponseDTO;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -10,56 +9,56 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.List;
 
 /**
- * Handler global para exceções da API.
- * Garante padronização das respostas de erro conforme api_response_standards.md
+ * Global exception handler that converts exceptions to standardized API responses.
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     /**
-     * Handler para erros de validação de campo (Bean Validation).
-     * Retorna 400 Bad Request com lista de todos os erros de validação.
+     * Handles all BusinessException subclasses.
+     * Returns the appropriate HTTP status and error response.
+     */
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<List<ErrorResponseDTO>> handleBusinessException(BusinessException ex) {
+        var error = ErrorResponseDTO.of(ex.getErrorCode(), ex.getMessage(), ex.getField());
+        return ResponseEntity.status(ex.getHttpStatus()).body(List.of(error));
+    }
+
+    /**
+     * Handles validation errors from @Valid annotations.
+     * Returns 400 Bad Request with all field errors.
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<List<ErrorResponseDTO>> handleValidationException(MethodArgumentNotValidException ex) {
-        List<ErrorResponseDTO> errors = ex.getBindingResult()
-                .getFieldErrors()
-                .stream()
+        List<ErrorResponseDTO> errors = ex.getBindingResult().getFieldErrors().stream()
                 .map(fieldError -> ErrorResponseDTO.of(
-                        "INVALID_FIELD_VALUE",
-                        fieldError.getDefaultMessage(),
+                        mapConstraintToErrorCode(fieldError.getCode()),
+                        fieldError.getDefaultMessage() != null ? fieldError.getDefaultMessage() : "Invalid value",
                         fieldError.getField()
                 ))
                 .toList();
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
+        return ResponseEntity.badRequest().body(errors);
     }
 
     /**
-     * Handler para limite de TestProjects excedido.
-     * RN10.01.2 → 422 Unprocessable Entity
+     * Maps Bean Validation constraint names to standardized error codes.
      */
-    @ExceptionHandler(TestProjectLimitReachedException.class)
-    public ResponseEntity<List<ErrorResponseDTO>> handleTestProjectLimitReached(TestProjectLimitReachedException ex) {
-        ErrorResponseDTO error = ErrorResponseDTO.of(
-                ex.getErrorCode(),
-                ex.getMessage()
-        );
-        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(List.of(error));
-    }
+    private String mapConstraintToErrorCode(String constraintName) {
+        if (constraintName == null) {
+            return "VALIDATION_ERROR";
+        }
 
-    /**
-     * Handler para nome de TestProject duplicado.
-     * RN10.01.3 → 409 Conflict
-     */
-    @ExceptionHandler(TestProjectNameAlreadyExistsException.class)
-    public ResponseEntity<List<ErrorResponseDTO>> handleTestProjectNameAlreadyExists(TestProjectNameAlreadyExistsException ex) {
-        ErrorResponseDTO error = ErrorResponseDTO.of(
-                ex.getErrorCode(),
-                ex.getMessage(),
-                "name"
-        );
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(List.of(error));
+        return switch (constraintName) {
+            case "NotBlank", "NotNull", "NotEmpty" -> "REQUIRED_FIELD";
+            case "Size", "Length" -> "INVALID_FIELD_LENGTH";
+            case "Email" -> "INVALID_EMAIL_FORMAT";
+            case "Pattern" -> "INVALID_FORMAT";
+            case "Min", "Max", "DecimalMin", "DecimalMax" -> "INVALID_VALUE_RANGE";
+            case "Positive", "PositiveOrZero", "Negative", "NegativeOrZero" -> "INVALID_NUMBER";
+            case "Past", "PastOrPresent", "Future", "FutureOrPresent" -> "INVALID_DATE";
+            default -> "VALIDATION_ERROR";
+        };
     }
 }
 

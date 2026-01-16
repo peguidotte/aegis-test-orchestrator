@@ -54,8 +54,8 @@ class TestProjectControllerTest {
         void shouldReturn201WhenCreatedSuccessfully() throws Exception {
             // Arrange
             var request = new CreateTestProjectRequestDTO(
-                    "Suíte de Testes - Recebíveis",
-                    "Testes de integração da API de Duplicatas"
+                    "Receivables Test Suite",
+                    "Integration tests for Invoices API"
             );
 
             var response = new TestProjectResponseDTO(
@@ -97,7 +97,7 @@ class TestProjectControllerTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$[0].errorCode").value("INVALID_FIELD_LENGTH"))
+                    .andExpect(jsonPath("$[0].errorCode").value("REQUIRED_FIELD"))
                     .andExpect(jsonPath("$[0].field").value("name"));
         }
 

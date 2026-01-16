@@ -11,4 +11,6 @@ public interface TestProjectRepository extends JpaRepository<TestProject, Long> 
     List<TestProject> findByProjectId(Long projectId);
 
     Optional<TestProject> findByProjectIdAndName(Long projectId, String name);
+
+    long countByProjectId(Long projectId);
 }
