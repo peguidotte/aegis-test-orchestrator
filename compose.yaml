@@ -3,18 +3,51 @@ services:
     image: 'postgres:16-alpine'
     container_name: aegis-postgres
     environment:
-      POSTGRES_DB: aegis_homolog
+      POSTGRES_DB: aegis_test
       POSTGRES_USER: aegis
-      POSTGRES_PASSWORD: aegis123
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-aegis123}
     ports:
       - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U aegis -d aegis_homolog"]
+      test: ["CMD-SHELL", "pg_isready -U aegis -d aegis_test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  pgadmin:
+    image: 'dpage/pgadmin4:latest'
+    container_name: aegis-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@aegis.dev
+      PGADMIN_DEFAULT_PASSWORD: ${DB_PASSWORD:-aegis123}
+    ports:
+      - '5050:80'
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  rabbitmq:
+    image: 'rabbitmq:3-management-alpine'
+    container_name: aegis-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: aegis
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-aegis123}
+    ports:
+      - '5672:5672'   # AMQP
+      - '15672:15672' # Management UI
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
 
 volumes:
   postgres_data:
+  pgadmin_data:
+  rabbitmq_data:

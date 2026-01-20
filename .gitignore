@@ -31,3 +31,12 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Environment variables (NEVER commit secrets) ###
+.env
+*.env.local
+
+### Test output files ###
+test-output.txt
+mvn-test.log
+

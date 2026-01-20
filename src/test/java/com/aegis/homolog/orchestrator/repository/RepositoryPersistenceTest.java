@@ -24,6 +24,12 @@ class RepositoryPersistenceTest {
     private TestProjectRepository testProjectRepository;
 
     @Autowired
+    private EnvironmentRepository environmentRepository;
+
+    @Autowired
+    private BaseUrlRepository baseUrlRepository;
+
+    @Autowired
     private DomainRepository domainRepository;
 
     @Autowired
@@ -85,10 +91,13 @@ class RepositoryPersistenceTest {
     @Test
     @DisplayName("Should join api calls by project and domain")
     void shouldJoinApiCallsByProjectAndDomain() {
+        // Setup project, environment, baseUrl, domain
         var project = testProjectRepository.save(TestEntityFactory.testProject(2L, "client_homologation"));
+        var environment = environmentRepository.save(TestEntityFactory.environment(project, "DEV"));
+        var baseUrl = baseUrlRepository.save(TestEntityFactory.baseUrl(project, environment, "MAIN_API"));
         var domain = domainRepository.save(TestEntityFactory.domain("Payments"));
 
-        var apiCall = TestEntityFactory.apiCall(project, domain);
+        var apiCall = TestEntityFactory.apiCall(project, domain, baseUrl);
         apiCallRepository.save(apiCall);
 
         var results = apiCallRepository.findByProjectIdAndDomainId(project.getId(), domain.getId());

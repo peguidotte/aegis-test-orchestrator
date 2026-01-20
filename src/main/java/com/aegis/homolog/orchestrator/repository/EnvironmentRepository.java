@@ -13,5 +13,7 @@ public interface EnvironmentRepository extends JpaRepository<Environment, Long> 
     Optional<Environment> findByTestProjectIdAndIsDefaultTrue(Long testProjectId);
 
     Optional<Environment> findByTestProjectIdAndName(Long testProjectId, String name);
+
+    Optional<Environment> findByIdAndTestProjectId(Long id, Long testProjectId);
 }
 

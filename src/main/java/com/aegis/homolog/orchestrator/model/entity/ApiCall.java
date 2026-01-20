@@ -1,13 +1,17 @@
 package com.aegis.homolog.orchestrator.model.entity;
 
+import com.aegis.homolog.orchestrator.model.enums.HttpMethod;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
@@ -22,14 +26,28 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
+/**
+ * Represents a cataloged API endpoint.
+ * <p>
+ * ApiCalls serve as a reusable registry of endpoints that can be referenced
+ * when creating Specifications. This avoids duplication of endpoint information
+ * and allows for consistent endpoint definitions across test specifications.
+ */
 @Getter
 @Setter
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString(callSuper = true, exclude = {"project", "domain"})
+@ToString(callSuper = true, exclude = {"project", "domain", "baseUrl"})
 @Entity
-@Table(name = "t_aegis_api_calls")
+@Table(
+        name = "t_aegis_api_calls",
+        indexes = {
+                @Index(name = "idx_api_call_project_id", columnList = "project_id"),
+                @Index(name = "idx_api_call_domain_id", columnList = "domain_id"),
+                @Index(name = "idx_api_call_base_url_id", columnList = "base_url_id")
+        }
+)
 public class ApiCall extends AuditableEntity {
 
     @Id
@@ -41,18 +59,54 @@ public class ApiCall extends AuditableEntity {
     @JoinColumn(name = "project_id", nullable = false)
     private TestProject project;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "domain_id", nullable = false)
+    /**
+     * Domain is optional - can be assigned later for semantic grouping.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "domain_id")
     private Domain domain;
 
-    @Column(name = "base_url_id", nullable = false, length = 64)
-    private String baseUrlId;
+    /**
+     * Reference to the base URL for this endpoint.
+     */
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "base_url_id", nullable = false)
+    private BaseUrl baseUrl;
 
+    /**
+     * The route/path definition for this endpoint.
+     * Example: "/v1/invoices", "/v1/invoices/{invoiceId}"
+     */
     @Column(name = "route_definition", nullable = false, length = 256)
     private String routeDefinition;
 
+    /**
+     * HTTP method for this endpoint.
+     */
+    @Enumerated(EnumType.STRING)
     @Column(name = "http_method", nullable = false, length = 16)
-    private String method;
+    private HttpMethod method;
+
+    /**
+     * Brief description of what this endpoint does.
+     * Example: "Creates a new invoice", "Retrieves invoice by ID"
+     */
+    @Column(name = "description", length = 500)
+    private String description;
+
+    /**
+     * JSON example of a typical request payload.
+     */
+    @Lob
+    @Column(name = "request_example")
+    private String requestExample;
+
+    /**
+     * JSON example of a typical response payload.
+     */
+    @Lob
+    @Column(name = "response_example")
+    private String responseExample;
 
     @ElementCollection
     @CollectionTable(name = "t_aegis_api_call_vars", joinColumns = @JoinColumn(name = "api_call_id"))
@@ -60,12 +114,24 @@ public class ApiCall extends AuditableEntity {
     @Builder.Default
     private Set<String> customVariables = new HashSet<>();
 
+    /**
+     * Base KarateDSL template for this endpoint.
+     */
     @Lob
-    @Column(name = "base_gherkin", nullable = false)
+    @Column(name = "base_gherkin")
     private String baseGherkin;
 
+    /**
+     * JSON describing required parameters for this endpoint.
+     */
     @Lob
     @Column(name = "required_params")
     private String requiredParams;
 
+    /**
+     * Indicates if this endpoint requires authentication.
+     */
+    @Column(name = "requires_auth")
+    @Builder.Default
+    private Boolean requiresAuth = true;
 }
