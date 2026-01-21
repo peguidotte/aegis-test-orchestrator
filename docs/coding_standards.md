@@ -87,7 +87,7 @@ Use **suffix-based naming** for error codes:
 ### 3.5 Creating a New Exception
 
 ```java
-package com.aegis.homolog.orchestrator.exception;
+package com.aegis.tests.orchestrator.exception;
 
 import org.springframework.http.HttpStatus;
 
