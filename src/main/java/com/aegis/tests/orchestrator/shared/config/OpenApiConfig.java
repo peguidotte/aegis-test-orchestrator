@@ -11,7 +11,12 @@ import org.springframework.context.annotation.Configuration;
 import java.util.List;
 
 /**
- * Configuração do OpenAPI/Swagger para documentação da API.
+ * OpenAPI/Swagger configuration for API documentation.
+ *
+ * Documentation available at:
+ * - Redoc: http://localhost:8080/redoc.html (recommended - cleaner UI)
+ * - Swagger UI: http://localhost:8080/swagger-ui.html
+ * - OpenAPI JSON: http://localhost:8080/v3/api-docs
  */
 @Configuration
 public class OpenApiConfig {
@@ -23,7 +28,25 @@ public class OpenApiConfig {
                         .title("Aegis Test Orchestrator API")
                         .version("1.0.0")
                         .description("""
-                                API module of Aegis Tests for orchestrating automated tests.
+                                # Aegis Test Orchestrator
+                                
+                                API for orchestrating AI-driven automated test generation and execution.
+                                
+                                ## Features
+                                - **Test Projects**: Organize your test suites
+                                - **Specifications**: Define what to test with AI assistance
+                                - **Environments**: Manage different test environments
+                                - **API Catalog**: Reusable endpoint definitions
+                                - **Authentication Profiles**: Manage test credentials
+                                
+                                ## Getting Started
+                                1. Create a TestProject
+                                2. Define Specifications (MANUAL or API_CALL mode)
+                                3. Let the AI generate comprehensive test scenarios
+                                
+                                ## Authentication
+                                Currently in MVP mode - authentication is disabled.
+                                JWT authentication will be required in production.
                                 """)
                         .contact(new Contact()
                                 .name("Aegis Team")
@@ -32,7 +55,9 @@ public class OpenApiConfig {
                                 .name("Proprietary")
                                 .url("https://aegis.example.com/license")))
                 .servers(List.of(
-                        new Server().url("http://localhost:8080").description("Local Development")
+                        new Server().url("http://localhost:8080").description("Local Development"),
+                        new Server().url("https://api-staging.aegis.example.com").description("Staging"),
+                        new Server().url("https://api.aegis.example.com").description("Production")
                 ));
     }
 }

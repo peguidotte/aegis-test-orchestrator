@@ -26,6 +26,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Swagger/OpenAPI endpoints
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
+                        // Redoc endpoint
+                        .requestMatchers("/redoc").permitAll()
                         // Health check
                         .requestMatchers("/actuator/**").permitAll()
                         // API endpoints - MVP: permitir tudo (TODO: adicionar autenticação)
