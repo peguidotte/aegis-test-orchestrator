@@ -1,7 +1,8 @@
 package com.aegis.tests.orchestrator.specification;
 
+import com.aegis.tests.orchestrator.shared.model.dto.BusinessErrorDTO;
+import com.aegis.tests.orchestrator.shared.model.dto.ValidationErrorDTO;
 import com.aegis.tests.orchestrator.specification.dto.CreateSpecificationRequestDTO;
-import com.aegis.tests.orchestrator.shared.model.dto.ErrorResponseDTO;
 import com.aegis.tests.orchestrator.specification.dto.SpecificationResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -54,23 +55,13 @@ public class SpecificationController {
     )
     @ApiResponse(
             responseCode = "400",
-            description = "Validation error - missing or invalid fields",
-            content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
+            description = "Validation error",
+            content = @Content(schema = @Schema(implementation = ValidationErrorDTO.class))
     )
     @ApiResponse(
-            responseCode = "404",
-            description = "TestProject or Environment not found",
-            content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
-    )
-    @ApiResponse(
-            responseCode = "409",
-            description = "Specification with same method, path, and environment already exists",
-            content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
-    )
-    @ApiResponse(
-            responseCode = "422",
-            description = "Business rule violation - Domain or AuthProfile validation failed",
-            content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
+            responseCode = "4xx",
+            description = "Business rule violated",
+            content = @Content(schema = @Schema(implementation = BusinessErrorDTO.class))
     )
     @PostMapping
     public ResponseEntity<SpecificationResponseDTO> createSpecification(

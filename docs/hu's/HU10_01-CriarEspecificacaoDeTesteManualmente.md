@@ -141,14 +141,52 @@ Cria uma **Specification** de teste dentro de um `TestProject`.
 | `createdAt` | Timestamp | Data de criação | `2026-01-13T10:00:00Z` | Obrigatório |
 | `updatedAt` | Timestamp | Última atualização | `2026-01-13T10:00:00Z` | Obrigatório |
 
-### SpecStatus (Domínio)
+### SpecificationStatus (Ciclo de Vida)
 
-- `CREATED` - Criada, aguardando processamento
-- `WAITING_APPROVAL` - Aguardando aprovação manual
-- `APPROVED` - Aprovada para geração
-- `REJECTED` - Rejeitada
-- `GENERATING_TESTS` - IA gerando testes
-- `TESTS_GENERATED` - Testes gerados com sucesso
+O status da Specification segue um fluxo de estados bem definido:
+
+```
+CREATED ──────────────────────────────────────────────┐
+   │                                                  │
+   ▼                                                  │
+PROCESSING ──► PLANNING ──► PLANNED ──► WAITING_APPROVAL
+                                             │
+                   ┌─────────────────────────┼─────────────────────────┐
+                   │                         │                         │
+                   ▼                         ▼                         ▼
+             APPROVED             APPROVED_WITH_EDITS              REJECTED
+                   │                         │                         │
+                   └───────────┬─────────────┘                         │
+                               │                                       │
+                               ▼                                       │
+                          PROCESSING ◄─────────────────────────────────┘
+                               │
+                               ▼
+                       GENERATING_TESTS ◄───┐
+                               │            │
+                               ▼            │
+                        VALIDATING_TESTS ───┘ (loop se testes falham)
+                               │
+                               ▼
+                        TESTS_GENERATED
+
+Qualquer status pode transicionar para ERROR em caso de falha.
+```
+
+| Status | Descrição |
+| --- | --- |
+| `CREATED` | Status inicial - Specification criada e persistida |
+| `PROCESSING` | Agente IA recebeu a specification e iniciou processamento |
+| `PLANNING` | Agente IA está planejando os cenários de teste |
+| `PLANNED` | Agente IA finalizou o planejamento - cenários definidos |
+| `WAITING_APPROVAL` | Planejamento enviado ao usuário, aguardando aprovação ou correções |
+| `APPROVED` | Usuário aprovou o planejamento sem alterações |
+| `APPROVED_WITH_EDITS` | Usuário aprovou o planejamento mas fez edições |
+| `REJECTED` | Usuário rejeitou o planejamento - necessita replanejamento |
+| `GENERATING_TESTS` | Gerador IA recebeu o planejamento aprovado e está gerando código de teste |
+| `VALIDATING_TESTS` | Gerador IA está validando os testes gerados (executando-os) |
+| `TESTS_GENERATED` | Testes foram gerados e validados com sucesso |
+| `ERROR` | Ocorreu um erro durante qualquer fase do processamento |
 
 ```json
 {

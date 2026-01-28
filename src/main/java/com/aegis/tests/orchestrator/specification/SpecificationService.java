@@ -161,9 +161,7 @@ public class SpecificationService {
         }
 
         // 7. Determine initial status
-        SpecificationStatus initialStatus = Boolean.TRUE.equals(request.approveBeforeGeneration())
-                ? SpecificationStatus.WAITING_APPROVAL
-                : SpecificationStatus.CREATED;
+        SpecificationStatus initialStatus = SpecificationStatus.CREATED;
 
         // 8. Build and persist Specification
         Specification specification = Specification.builder()
@@ -192,10 +190,8 @@ public class SpecificationService {
                 savedSpecification.getId(), savedSpecification.getStatus());
 
         // 9. Publish event if no approval required
-        if (initialStatus == SpecificationStatus.CREATED) {
-            SpecificationCreatedEvent event = SpecificationCreatedEvent.fromEntity(savedSpecification);
-            eventPublisher.publishSpecificationCreated(event);
-        }
+        SpecificationCreatedEvent event = SpecificationCreatedEvent.fromEntity(savedSpecification);
+        eventPublisher.publishSpecificationCreated(event);
 
         // 10. Return response
         return SpecificationResponseDTO.fromEntity(savedSpecification);

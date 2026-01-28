@@ -346,7 +346,7 @@ class SpecificationServiceTest {
 
             // Assert
             assertThat(response.status()).isEqualTo(SpecificationStatus.WAITING_APPROVAL);
-            verify(eventPublisher, never()).publishSpecificationCreated(any());
+            verify(eventPublisher).publishSpecificationCreated(any());
         }
 
         @Test

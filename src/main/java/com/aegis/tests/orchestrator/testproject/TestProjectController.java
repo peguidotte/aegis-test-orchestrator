@@ -1,7 +1,8 @@
 package com.aegis.tests.orchestrator.testproject;
 
+import com.aegis.tests.orchestrator.shared.model.dto.BusinessErrorDTO;
+import com.aegis.tests.orchestrator.shared.model.dto.ValidationErrorDTO;
 import com.aegis.tests.orchestrator.testproject.dto.CreateTestProjectRequestDTO;
-import com.aegis.tests.orchestrator.shared.model.dto.ErrorResponseDTO;
 import com.aegis.tests.orchestrator.testproject.dto.TestProjectResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -31,11 +32,9 @@ public class TestProjectController {
     @ApiResponse(responseCode = "201", description = "TestProject created successfully",
             content = @Content(schema = @Schema(implementation = TestProjectResponseDTO.class)))
     @ApiResponse(responseCode = "400", description = "Validation error",
-            content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class)))
-    @ApiResponse(responseCode = "409", description = "TestProject name already exists in project",
-            content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class)))
-    @ApiResponse(responseCode = "422", description = "Business rule violated - TestProject limit reached",
-            content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class)))
+            content = @Content(schema = @Schema(implementation = ValidationErrorDTO.class)))
+    @ApiResponse(responseCode = "4XX", description = "",
+            content = @Content(schema = @Schema(implementation = BusinessErrorDTO.class)))
     @PostMapping
     public ResponseEntity<TestProjectResponseDTO> create(
             @PathVariable Long projectId,
