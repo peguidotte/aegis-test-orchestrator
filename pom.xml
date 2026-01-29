@@ -9,10 +9,10 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.aegis</groupId>
-	<artifactId>homolog-orchestrator</artifactId>
+	<artifactId>test-orchestrator</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>homolog-orchestrator</name>
-	<description>Homolog MVP</description>
+	<name>test-orchestrator</name>
+	<description>test MVP</description>
 	<url/>
 	<licenses>
 		<license/>
