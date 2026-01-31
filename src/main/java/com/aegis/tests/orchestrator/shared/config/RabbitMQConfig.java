@@ -16,18 +16,18 @@ import org.springframework.context.annotation.Configuration;
 @ConditionalOnProperty(name = "spring.rabbitmq.enabled", havingValue = "true", matchIfMissing = true)
 public class RabbitMQConfig {
 
-    public static final String SPECIFICATION_QUEUE = "aegis.specification.created";
-    public static final String SPECIFICATION_EXCHANGE = "aegis.specification.exchange";
-    public static final String SPECIFICATION_ROUTING_KEY = "specification.created";
+    public static final String TEST_GENERATION_QUEUE = "aegis-test.test-generation.started";
+    public static final String TEST_GENERATION_EXCHANGE = "aegis-test.test-generation.exchange";
+    public static final String TEST_GENERATION_ROUTING_KEY = "specification.started";
 
     @Bean
     Queue specificationQueue() {
-        return new Queue(SPECIFICATION_QUEUE, true);
+        return new Queue(TEST_GENERATION_QUEUE, true);
     }
 
     @Bean
     DirectExchange specificationExchange() {
-        return new DirectExchange(SPECIFICATION_EXCHANGE);
+        return new DirectExchange(TEST_GENERATION_EXCHANGE);
     }
 
     @Bean
@@ -35,7 +35,7 @@ public class RabbitMQConfig {
         return BindingBuilder
                 .bind(specificationQueue)
                 .to(specificationExchange)
-                .with(SPECIFICATION_ROUTING_KEY);
+                .with(TEST_GENERATION_ROUTING_KEY);
     }
 
     @Bean

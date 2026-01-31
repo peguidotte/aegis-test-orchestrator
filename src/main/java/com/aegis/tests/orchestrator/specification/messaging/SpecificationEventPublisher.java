@@ -24,8 +24,8 @@ public class SpecificationEventPublisher extends SpecificationEventPublisherBase
     public void publishSpecificationCreated(SpecificationCreatedEvent event) {
         log.info("Publishing SpecificationCreatedEvent for specification ID: {}", event.specificationId());
         rabbitTemplate.convertAndSend(
-                RabbitMQConfig.SPECIFICATION_EXCHANGE,
-                RabbitMQConfig.SPECIFICATION_ROUTING_KEY,
+                RabbitMQConfig.TEST_GENERATION_EXCHANGE,
+                RabbitMQConfig.TEST_GENERATION_ROUTING_KEY,
                 event
         );
         log.debug("SpecificationCreatedEvent published successfully: {}", event);
