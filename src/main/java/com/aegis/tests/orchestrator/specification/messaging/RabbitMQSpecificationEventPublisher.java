@@ -8,15 +8,19 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
+/**
+ * RabbitMQ implementation of SpecificationEventPublisher.
+ * Publishes specification events to configured RabbitMQ exchanges.
+ */
 @Component
-@ConditionalOnProperty(name = "spring.rabbitmq.enabled", havingValue = "true", matchIfMissing = true)
-public class SpecificationEventPublisher extends SpecificationEventPublisherBase {
+@ConditionalOnProperty(name = "aegis.messaging.provider", havingValue = "rabbitmq", matchIfMissing = true)
+public class RabbitMQSpecificationEventPublisher extends SpecificationEventPublisherBase {
 
-    private static final Logger log = LoggerFactory.getLogger(SpecificationEventPublisher.class);
+    private static final Logger log = LoggerFactory.getLogger(RabbitMQSpecificationEventPublisher.class);
 
     private final RabbitTemplate rabbitTemplate;
 
-    public SpecificationEventPublisher(RabbitTemplate rabbitTemplate) {
+    public RabbitMQSpecificationEventPublisher(RabbitTemplate rabbitTemplate) {
         this.rabbitTemplate = rabbitTemplate;
     }
 
