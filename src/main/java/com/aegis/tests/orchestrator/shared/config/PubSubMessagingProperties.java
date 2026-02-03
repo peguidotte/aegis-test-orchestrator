@@ -15,7 +15,7 @@ import org.springframework.context.annotation.Configuration;
 public class PubSubMessagingProperties {
 
     /**
-     * The Pub/Sub topic for specification created events.
+     * The Pub/Sub topic for test generation requests.
      */
-    private String specificationCreatedTopic = "aegis-test.test-generation.started";
+    private String testGenerationRequestedTopic = "aegis-test.test-generation.requested";
 }

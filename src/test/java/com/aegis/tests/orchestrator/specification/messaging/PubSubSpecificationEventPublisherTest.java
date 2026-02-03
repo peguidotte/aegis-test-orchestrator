@@ -37,7 +37,7 @@ class PubSubSpecificationEventPublisherTest {
     @BeforeEach
     void setUp() {
         properties = new PubSubMessagingProperties();
-        properties.setSpecificationCreatedTopic(TOPIC);
+        properties.setTestGenerationRequestedTopic(TOPIC);
         objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         publisher = new PubSubSpecificationEventPublisher(pubSubTemplate, properties, objectMapper);
@@ -64,7 +64,7 @@ class PubSubSpecificationEventPublisherTest {
     void shouldUseTopicFromProperties() throws Exception {
         // Arrange
         String customTopic = "custom-topic";
-        properties.setSpecificationCreatedTopic(customTopic);
+        properties.setTestGenerationRequestedTopic(customTopic);
 
         var event = createTestEvent(1L, "GET", "/api/test");
         String payload = objectMapper.writeValueAsString(event);

@@ -29,7 +29,7 @@ public class PubSubSpecificationEventPublisher extends SpecificationEventPublish
 
     @Override
     public void publishSpecificationCreated(SpecificationCreatedEvent event) {
-        String topic = properties.getSpecificationCreatedTopic();
+        String topic = properties.getTestGenerationRequestedTopic();
         log.info("Publishing SpecificationCreatedEvent to Pub/Sub topic '{}' for specification ID: {}",
                 topic, event.specificationId());
 

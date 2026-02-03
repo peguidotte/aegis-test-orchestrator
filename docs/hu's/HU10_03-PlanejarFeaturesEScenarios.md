@@ -69,18 +69,14 @@ GenerationJob (PLANNING)
 
 ---
 
-## Endpoint de Callback (Agente → Orchestrator)
+## Tópico de Callback (Agente → Orchestrator)
 
 <aside>
 ➡️
 
-**POST** `/v1/internal/generation-jobs/{jobId}/plan`
+**Tópico** `aegis-test.test-generation.planned`
 
 </aside>
-
-Endpoint interno usado pelo Aegis Agent para enviar o plano gerado.
-
-**(DÚVIDA)** Este endpoint deve ser protegido com API Key interna ou mTLS?
 
 ---
 

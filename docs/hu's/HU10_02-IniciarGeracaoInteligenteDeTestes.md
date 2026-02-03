@@ -285,7 +285,7 @@ Qualquer status pode transicionar para ERROR em caso de falha do sistema.
 
 ### Evento de Disparo: GENERATION_JOB_STARTED
 
-**Publicado em:** Fila `aegis.generation.started`
+**Publicado em:** Fila `aegis-test.test-generation.started`
 
 **Payload:**
 ```json
