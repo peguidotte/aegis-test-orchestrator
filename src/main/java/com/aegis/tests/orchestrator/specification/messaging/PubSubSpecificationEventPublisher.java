@@ -2,6 +2,7 @@ package com.aegis.tests.orchestrator.specification.messaging;
 
 import com.aegis.tests.orchestrator.shared.config.PubSubMessagingProperties;
 import com.aegis.tests.orchestrator.specification.dto.event.SpecificationCreatedEvent;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.cloud.spring.pubsub.core.PubSubTemplate;
 import org.slf4j.Logger;
@@ -37,7 +38,7 @@ public class PubSubSpecificationEventPublisher extends SpecificationEventPublish
             String payload = objectMapper.writeValueAsString(event);
             pubSubTemplate.publish(topic, payload);
             log.debug("Successfully published event to Pub/Sub topic '{}'", topic);
-        } catch (Exception e) {
+        } catch (JsonProcessingException | RuntimeException e) {
             log.error("Failed to publish SpecificationCreatedEvent to Pub/Sub topic '{}'", topic, e);
             throw new RuntimeException("Failed to publish event to Pub/Sub", e);
         }
